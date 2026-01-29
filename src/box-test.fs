@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Use sketch plane normal for sketch vertices'
+// git commit 'Rename draft neutral plane labels'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -21,11 +21,11 @@ export enum PlacementMode
 
 export enum DraftNeutralPlane
 {
-    annotation { "Name" : "Top" }
+    annotation { "Name" : "End" }
     TOP,
     annotation { "Name" : "Middle" }
     MIDDLE,
-    annotation { "Name" : "Bottom" }
+    annotation { "Name" : "Start" }
     BOTTOM
 }
 
