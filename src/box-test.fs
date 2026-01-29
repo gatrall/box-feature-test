@@ -13,12 +13,27 @@ export enum PlacementMode
     CORNER
 }
 
+export enum OperationType
+{
+    annotation { "Name" : "New" }
+    NEW,
+    annotation { "Name" : "Add" }
+    ADD,
+    annotation { "Name" : "Remove" }
+    REMOVE,
+    annotation { "Name" : "Intersect" }
+    INTERSECT
+}
+
 const MIN_SIZE = 0.01 * millimeter;
 
-annotation { "Feature Type Name" : "Box Test", "Manipulator Change Function" : "myFirstFeatureManipulators" }
+annotation { "Feature Type Name" : "Box Test", "Manipulator Change Function" : "boxTestManipulators" }
 export const boxTest = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
+        annotation { "Name" : "Operation", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : OperationType.NEW }
+        definition.operation is OperationType;
+
         annotation { "Name" : "Placement", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : PlacementMode.CENTER }
         definition.placement is PlacementMode;
 
@@ -46,6 +61,13 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             definition.flipZ is boolean;
         }
 
+        annotation {
+            "Name" : "Location",
+            "Filter" : EntityType.VERTEX || BodyType.MATE_CONNECTOR,
+            "MaxNumberOfPicks" : 1
+        }
+        definition.location is Query;
+
         annotation { "Name" : "X Offset", "Default" : 0 * millimeter }
         isLength(definition.originX, LENGTH_BOUNDS);
 
@@ -55,12 +77,14 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         annotation { "Name" : "Z Offset", "Default" : 0 * millimeter }
         isLength(definition.originZ, LENGTH_BOUNDS);
 
-        annotation {
-            "Name" : "Location",
-            "Filter" : EntityType.VERTEX || BodyType.MATE_CONNECTOR,
-            "MaxNumberOfPicks" : 1
+        if (definition.operation != OperationType.NEW)
+        {
+            annotation { "Name" : "Merge with all", "Default" : true }
+            definition.mergeWithAll is boolean;
+
+            annotation { "Name" : "Merge scope", "Filter" : EntityType.BODY, "MaxNumberOfPicks" : 0 }
+            definition.mergeScope is Query;
         }
-        definition.location is Query;
 
     }
     {
@@ -208,10 +232,30 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             "bodies" : qCreatedBy(boxId, EntityType.BODY),
             "transform" : toWorld(baseCsys)
         });
+
+        if (definition.operation != OperationType.NEW)
+        {
+            const toolBodies = qCreatedBy(boxId, EntityType.BODY);
+            const allTargets = qAllModifiableSolidBodies();
+            const targets = definition.mergeWithAll ? qSubtraction(allTargets, toolBodies) : definition.mergeScope;
+            const operationType = definition.operation == OperationType.ADD ? BooleanOperationType.UNION
+                : definition.operation == OperationType.REMOVE ? BooleanOperationType.SUBTRACTION
+                : BooleanOperationType.INTERSECTION;
+
+            opBoolean(context, id + "boolean", {
+                "tools" : toolBodies,
+                "targets" : targets,
+                "operationType" : operationType
+            });
+        }
     });
 
 function normalizeManipulatorDefinition(definition is map) returns map
 {
+    if (definition.operation == undefined)
+    {
+        definition.operation = OperationType.NEW;
+    }
     if (definition.placement == undefined)
     {
         definition.placement = PlacementMode.CENTER;
@@ -259,7 +303,7 @@ function normalizeManipulatorDefinition(definition is map) returns map
     return definition;
 }
 
-export function myFirstFeatureManipulators(context is Context, definition is map, newManipulators is map) returns map
+export function boxTestManipulators(context is Context, definition is map, newManipulators is map) returns map
 {
     definition = normalizeManipulatorDefinition(definition);
 

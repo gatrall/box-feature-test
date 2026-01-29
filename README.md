@@ -10,17 +10,17 @@ A minimal, working FeatureScript project used to develop and test custom feature
 Rule: **Do not make edits directly in Onshape** except for quick experiments that you immediately port back into the repo.
 
 ## Files
-- `src/MyFirstFeature.fs` — FeatureScript source
+- `src/box-test.fs` — FeatureScript source
 - `notes/` — optional design notes, decision log, bug notes (plain `.md` files)
 
 ## How to run in Onshape
 1. Create/open an Onshape Document.
 2. Create a **Feature Studio**.
-3. Paste the full contents of `src/MyFirstFeature.fs` into the Feature Studio and **Save**.
+3. Paste the full contents of `src/box-test.fs` into the Feature Studio and **Save**.
 4. In a **Part Studio**, add the custom feature from the Feature Studio.
 5. Run the feature and verify geometry updates as expected.
 
-Tip: after you paste into Onshape, update the header comment in `MyFirstFeature.fs` with the short git commit hash you pasted.
+Tip: after you paste into Onshape, update the header comment in `box-test.fs` with the short git commit hash you pasted.
 
 ## Development workflow
 ### Make a change
