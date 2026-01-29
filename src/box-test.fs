@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Align draft manip origin to neutral plane and X side'
+// git commit 'Align draft manip axis to local Z'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -421,12 +421,14 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             const localRotationOrigin = vector(localSideX + sideSignX * draftRadius, localPlaneY, localNeutralZ);
             const worldAxisOrigin = toWorld(baseCsys, localAxisOrigin);
             const worldRotationOrigin = toWorld(baseCsys, localRotationOrigin);
+            const zSign = signedSize[2] >= 0 * millimeter ? 1 : -1;
+            const axisDirection = baseCsys.zAxis * zSign;
             const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
             const maxDraftAngle = DRAFT_ANGLE_MAX;
 
             manipulators["draftAngle"] = angularManipulator({
                 "axisOrigin" : worldAxisOrigin,
-                "axisDirection" : baseCsys.zAxis,
+                "axisDirection" : axisDirection,
                 "rotationOrigin" : worldRotationOrigin,
                 "angle" : signedDraftAngle,
                 "minValue" : -maxDraftAngle,
