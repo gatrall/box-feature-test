@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Invert draft manip axis'
+// git commit 'Use circular draft flip UI hint'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -91,7 +91,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             annotation { "Name" : "Draft angle", "Default" : 1 * degree }
             isAngle(definition.draftAngle, ANGLE_STRICT_90_BOUNDS);
 
-            annotation { "Name" : "", "UIHint" : UIHint.ALWAYS_HIDDEN, "Default" : false }
+            annotation { "Name" : "", "UIHint" : UIHint.OPPOSITE_DIRECTION_CIRCULAR, "Default" : false }
             definition.reverseDraft is boolean;
         }
 
