@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Use circular draft flip UI hint'
+// git commit 'Fix draft top/bottom for flipZ'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -231,11 +231,11 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
                     if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
                     {
-                        neutralPlaneQuery = topFace;
+                        neutralPlaneQuery = definition.flipZ == true ? bottomFace : topFace;
                     }
                     else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
                     {
-                        neutralPlaneQuery = bottomFace;
+                        neutralPlaneQuery = definition.flipZ == true ? topFace : bottomFace;
                     }
                     else
                     {
@@ -399,14 +399,16 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         {
             const localTopZ = max(localCorner1[2], localCorner2[2]);
             const localBottomZ = min(localCorner1[2], localCorner2[2]);
+            const neutralTopZ = definition.flipZ == true ? localBottomZ : localTopZ;
+            const neutralBottomZ = definition.flipZ == true ? localTopZ : localBottomZ;
             var localNeutralZ;
             if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
             {
-                localNeutralZ = localTopZ;
+                localNeutralZ = neutralTopZ;
             }
             else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
             {
-                localNeutralZ = localBottomZ;
+                localNeutralZ = neutralBottomZ;
             }
             else
             {
