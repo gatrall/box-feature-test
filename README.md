@@ -60,3 +60,6 @@ Primary documentation for this project:
 ## Troubleshooting
 - If Onshape reports a precondition/UI error, it’s often because a parameter type isn’t supported by the feature dialog. Prefer `isLength`, `isAngle`, `isInteger`, `isString`, `isQuery`, and `definition.foo is boolean`.
 - If Onshape reports “Function X not found,” verify imports and that you’re calling the correct std function (some are `fSomething` features vs `opSomething` operations).
+- Keep in mind that FeatureScript includes a lot of useful helper functions. Make sure you're not reinventing the wheel when doing vector math.
+- There are a lot of good design patterns in the Std Library. If you're trying to figure out how to do something in a way that is consistent and robust, look for examples there, or ask for which feature(s) might be similar.
+- Try to focus on keeping the code well structured, modular, and avoid adding a lot of new functions when existing ones could be refactored.
