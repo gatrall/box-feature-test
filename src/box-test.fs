@@ -4,6 +4,7 @@ FeatureScript 2856;
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
+export import(path : "onshape/std/tool.fs", version : "2856.0");
 
 export enum PlacementMode
 {
@@ -13,26 +14,13 @@ export enum PlacementMode
     CORNER
 }
 
-export enum OperationType
-{
-    annotation { "Name" : "New" }
-    NEW,
-    annotation { "Name" : "Add" }
-    ADD,
-    annotation { "Name" : "Remove" }
-    REMOVE,
-    annotation { "Name" : "Intersect" }
-    INTERSECT
-}
-
 const MIN_SIZE = 0.01 * millimeter;
 
 annotation { "Feature Type Name" : "Box Test", "Manipulator Change Function" : "boxTestManipulators" }
 export const boxTest = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
-        annotation { "Name" : "Operation", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : OperationType.NEW }
-        definition.operation is OperationType;
+        booleanStepTypePredicate(definition);
 
         annotation { "Name" : "Placement", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : PlacementMode.CENTER }
         definition.placement is PlacementMode;
@@ -77,14 +65,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         annotation { "Name" : "Z Offset", "Default" : 0 * millimeter }
         isLength(definition.originZ, LENGTH_BOUNDS);
 
-        if (definition.operation != OperationType.NEW)
-        {
-            annotation { "Name" : "Merge with all", "Default" : true }
-            definition.mergeWithAll is boolean;
-
-            annotation { "Name" : "Merge scope", "Filter" : EntityType.BODY, "MaxNumberOfPicks" : 0 }
-            definition.mergeScope is Query;
-        }
+        booleanStepScopePredicate(definition);
 
     }
     {
@@ -135,10 +116,19 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             localCorner2 = origin + signedSize;
         }
 
-        fCuboid(context, boxId, {
-            "corner1" : localCorner1,
-            "corner2" : localCorner2
-        });
+        var reconstructOp = function()
+        {
+            fCuboid(context, boxId, {
+                "corner1" : localCorner1,
+                "corner2" : localCorner2
+            });
+
+            opTransform(context, id + "orientBox", {
+                "bodies" : qCreatedBy(boxId, EntityType.BODY),
+                "transform" : toWorld(baseCsys)
+            });
+        };
+        reconstructOp();
 
         const localCenter = (localCorner1 + localCorner2) / 2;
         const worldCenter = toWorld(baseCsys, localCenter);
@@ -228,33 +218,25 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             "diagSize" : diagManip
         });
 
-        opTransform(context, id + "orientBox", {
-            "bodies" : qCreatedBy(boxId, EntityType.BODY),
-            "transform" : toWorld(baseCsys)
-        });
 
-        if (definition.operation != OperationType.NEW)
-        {
-            const toolBodies = qCreatedBy(boxId, EntityType.BODY);
-            const allTargets = qAllModifiableSolidBodies();
-            const targets = definition.mergeWithAll ? qSubtraction(allTargets, toolBodies) : definition.mergeScope;
-            const operationType = definition.operation == OperationType.ADD ? BooleanOperationType.UNION
-                : definition.operation == OperationType.REMOVE ? BooleanOperationType.SUBTRACTION
-                : BooleanOperationType.INTERSECTION;
-
-            opBoolean(context, id + "boolean", {
-                "tools" : toolBodies,
-                "targets" : targets,
-                "operationType" : operationType
-            });
-        }
+        const toolBodies = qCreatedBy(boxId, EntityType.BODY);
+        definition.mergeScopeExclusion = toolBodies;
+        processNewBodyIfNeeded(context, id, definition, reconstructOp);
     });
 
 function normalizeManipulatorDefinition(definition is map) returns map
 {
-    if (definition.operation == undefined)
+    if (definition.operationType == undefined)
     {
-        definition.operation = OperationType.NEW;
+        definition.operationType = NewBodyOperationType.NEW;
+    }
+    if (definition.defaultScope == undefined)
+    {
+        definition.defaultScope = true;
+    }
+    if (definition.booleanScope == undefined)
+    {
+        definition.booleanScope = qNothing();
     }
     if (definition.placement == undefined)
     {
