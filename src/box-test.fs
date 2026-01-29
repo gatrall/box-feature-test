@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Add draft angle manipulator and circular flip'
+// git commit 'Align draft manipulator to neutral plane and X side'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -395,15 +395,33 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
         if (definition.hasDraft == true)
         {
-            const draftRadius = max(clampedSizeX, clampedSizeY) / 2;
-            const draftRotationOrigin = worldCenter + baseCsys.xAxis * draftRadius;
+            const localTopZ = max(localCorner1[2], localCorner2[2]);
+            const localBottomZ = min(localCorner1[2], localCorner2[2]);
+            var localNeutralZ;
+            if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
+            {
+                localNeutralZ = localTopZ;
+            }
+            else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
+            {
+                localNeutralZ = localBottomZ;
+            }
+            else
+            {
+                localNeutralZ = localCenter[2];
+            }
+
+            const localNeutralCenter = vector(localCenter[0], localCenter[1], localNeutralZ);
+            const localRotationOrigin = vector(localCorner2[0], localCenter[1], localNeutralZ);
+            const worldNeutralCenter = toWorld(baseCsys, localNeutralCenter);
+            const worldRotationOrigin = toWorld(baseCsys, localRotationOrigin);
             const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
             const maxDraftAngle = ANGLE_STRICT_90_BOUNDS.max;
 
             manipulators["draftAngle"] = angularManipulator({
-                "axisOrigin" : worldCenter,
+                "axisOrigin" : worldNeutralCenter,
                 "axisDirection" : baseCsys.zAxis,
-                "rotationOrigin" : draftRotationOrigin,
+                "rotationOrigin" : worldRotationOrigin,
                 "angle" : signedDraftAngle,
                 "minValue" : -maxDraftAngle,
                 "maxValue" : maxDraftAngle,
