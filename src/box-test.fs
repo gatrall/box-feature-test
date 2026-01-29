@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Add draft option with neutral plane and angle'
+// git commit 'Remove qEntity usage in draft queries'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -217,7 +217,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
                     }
                     else
                     {
-                        sideFaceQueries = append(sideFaceQueries, qEntity(face));
+                        sideFaceQueries = append(sideFaceQueries, face);
                     }
                 }
 
@@ -229,11 +229,11 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
                     if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
                     {
-                        neutralPlaneQuery = qEntity(topFace);
+                        neutralPlaneQuery = topFace;
                     }
                     else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
                     {
-                        neutralPlaneQuery = qEntity(bottomFace);
+                        neutralPlaneQuery = bottomFace;
                     }
                     else
                     {
