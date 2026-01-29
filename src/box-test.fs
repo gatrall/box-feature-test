@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Default draft neutral plane to Start'
+// git commit 'Reorder draft neutral plane options'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -21,12 +21,12 @@ export enum PlacementMode
 
 export enum DraftNeutralPlane
 {
-    annotation { "Name" : "End" }
-    TOP,
+    annotation { "Name" : "Start" }
+    BOTTOM,
     annotation { "Name" : "Middle" }
     MIDDLE,
-    annotation { "Name" : "Start" }
-    BOTTOM
+    annotation { "Name" : "End" }
+    TOP
 }
 
 const MIN_SIZE = 0.01 * millimeter;
@@ -435,7 +435,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             const localRotationOrigin = vector(localSideX, localPlaneY, localNeutralZ + sideSignZ * draftRadius);
             const worldAxisOrigin = toWorld(baseCsys, localAxisOrigin);
             const worldRotationOrigin = toWorld(baseCsys, localRotationOrigin);
-            const axisDirection = -yAxis;
+            const axisDirection = -yAxis * sideSignZ;
             const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
             const maxDraftAngle = DRAFT_ANGLE_MAX;
 
