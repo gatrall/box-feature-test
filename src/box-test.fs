@@ -37,7 +37,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         annotation { "Name" : "Placement", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : PlacementMode.CENTER }
         definition.placement is PlacementMode;
 
-        annotation { "Name" : "X Size", "Default" : 20 * millimeter }
+        annotation { "Name" : "X Size" }
         isLength(definition.sizeX, NONNEGATIVE_LENGTH_BOUNDS);
         if (definition.placement == PlacementMode.CORNER)
         {
@@ -45,7 +45,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             definition.flipX is boolean;
         }
 
-        annotation { "Name" : "Y Size", "Default" : 20 * millimeter }
+        annotation { "Name" : "Y Size" }
         isLength(definition.sizeY, NONNEGATIVE_LENGTH_BOUNDS);
         if (definition.placement == PlacementMode.CORNER)
         {
@@ -53,7 +53,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             definition.flipY is boolean;
         }
 
-        annotation { "Name" : "Z Size", "Default" : 20 * millimeter }
+        annotation { "Name" : "Z Size" }
         isLength(definition.sizeZ, NONNEGATIVE_LENGTH_BOUNDS);
         if (definition.placement == PlacementMode.CORNER)
         {
