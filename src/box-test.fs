@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Simplify manipulator normalization'
+// git commit 'Add draft angle manipulator and circular flip'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -89,7 +89,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             annotation { "Name" : "Draft angle", "Default" : 1 * degree }
             isAngle(definition.draftAngle, ANGLE_STRICT_90_BOUNDS);
 
-            annotation { "Name" : "", "UIHint" : UIHint.OPPOSITE_DIRECTION, "Default" : false }
+            annotation { "Name" : "", "UIHint" : UIHint.ALWAYS_HIDDEN, "Default" : false }
             definition.reverseDraft is boolean;
         }
 
@@ -386,12 +386,32 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             });
         }
 
-        addManipulators(context, id, {
+        var manipulators = {
             "xSize" : xManip,
             "ySize" : yManip,
             "zSize" : zManip,
             "diagSize" : diagManip
-        });
+        };
+
+        if (definition.hasDraft == true)
+        {
+            const draftRadius = max(clampedSizeX, clampedSizeY) / 2;
+            const draftRotationOrigin = worldCenter + baseCsys.xAxis * draftRadius;
+            const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
+            const maxDraftAngle = ANGLE_STRICT_90_BOUNDS.max;
+
+            manipulators["draftAngle"] = angularManipulator({
+                "axisOrigin" : worldCenter,
+                "axisDirection" : baseCsys.zAxis,
+                "rotationOrigin" : draftRotationOrigin,
+                "angle" : signedDraftAngle,
+                "minValue" : -maxDraftAngle,
+                "maxValue" : maxDraftAngle,
+                "primaryParameterId" : "draftAngle"
+            });
+        }
+
+        addManipulators(context, id, manipulators);
 
 
         const toolBodies = qCreatedBy(boxId, EntityType.BODY);
@@ -439,6 +459,23 @@ function normalizeManipulatorDefinition(definition is map) returns map
 export function boxTestManipulators(context is Context, definition is map, newManipulators is map) returns map
 {
     definition = normalizeManipulatorDefinition(definition);
+
+    if (newManipulators["draftAngle"] != undefined)
+    {
+        const manip = newManipulators["draftAngle"];
+        if (manip.angle == undefined)
+        {
+            return definition;
+        }
+        if (definition.reverseDraft == undefined)
+        {
+            definition.reverseDraft = false;
+        }
+        const newAngle = manip.angle;
+        definition.reverseDraft = newAngle < 0 * degree;
+        definition.draftAngle = min(abs(newAngle), ANGLE_STRICT_90_BOUNDS.max);
+        return definition;
+    }
 
     if (newManipulators["xSize"] != undefined)
     {
