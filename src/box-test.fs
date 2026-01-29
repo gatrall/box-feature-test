@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Fix draft manip angle bounds'
+// git commit 'Match draft angle bounds to standard opDraft'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -29,7 +29,7 @@ export enum DraftNeutralPlane
 }
 
 const MIN_SIZE = 0.01 * millimeter;
-const DRAFT_ANGLE_MAX = 89.999 * degree;
+const DRAFT_ANGLE_MAX = 89.9 * degree;
 
 annotation { "Feature Type Name" : "Box Test", "Manipulator Change Function" : "boxTestManipulators" }
 export const boxTest = defineFeature(function(context is Context, id is Id, definition is map)
