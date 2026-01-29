@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Remove qEntity usage in draft queries'
+// git commit 'Simplify manipulator normalization'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -401,61 +401,21 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
 function normalizeManipulatorDefinition(definition is map) returns map
 {
-    if (definition.operationType == undefined)
-    {
-        definition.operationType = NewBodyOperationType.NEW;
-    }
-    if (definition.defaultScope == undefined)
-    {
-        definition.defaultScope = definition.operationType != NewBodyOperationType.NEW;
-    }
-    if (definition.booleanScope == undefined)
-    {
-        definition.booleanScope = qNothing();
-    }
-    if (definition.hasDraft == undefined)
-    {
-        definition.hasDraft = false;
-    }
-    if (definition.draftNeutralPlane == undefined)
-    {
-        definition.draftNeutralPlane = DraftNeutralPlane.MIDDLE;
-    }
-    if (definition.draftAngle == undefined)
-    {
-        definition.draftAngle = 1 * degree;
-    }
-    if (definition.reverseDraft == undefined)
-    {
-        definition.reverseDraft = false;
-    }
     if (definition.placement == undefined)
     {
         definition.placement = PlacementMode.CENTER;
     }
-    if (definition.originX == undefined)
-    {
-        definition.originX = 0 * millimeter;
-    }
-    if (definition.originY == undefined)
-    {
-        definition.originY = 0 * millimeter;
-    }
-    if (definition.originZ == undefined)
-    {
-        definition.originZ = 0 * millimeter;
-    }
     if (definition.sizeX == undefined)
     {
-        definition.sizeX = 20 * millimeter;
+        definition.sizeX = MIN_SIZE;
     }
     if (definition.sizeY == undefined)
     {
-        definition.sizeY = 20 * millimeter;
+        definition.sizeY = MIN_SIZE;
     }
     if (definition.sizeZ == undefined)
     {
-        definition.sizeZ = 20 * millimeter;
+        definition.sizeZ = MIN_SIZE;
     }
     if (definition.flipX == undefined)
     {
