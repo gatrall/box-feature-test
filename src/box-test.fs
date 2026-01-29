@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Reorder draft neutral plane options'
+// git commit 'Align draft neutral enum names'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -22,11 +22,11 @@ export enum PlacementMode
 export enum DraftNeutralPlane
 {
     annotation { "Name" : "Start" }
-    BOTTOM,
+    START,
     annotation { "Name" : "Middle" }
     MIDDLE,
     annotation { "Name" : "End" }
-    TOP
+    END
 }
 
 const MIN_SIZE = 0.01 * millimeter;
@@ -86,7 +86,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         definition.hasDraft is boolean;
         if (definition.hasDraft)
         {
-            annotation { "Name" : "Neutral plane", "Default" : DraftNeutralPlane.BOTTOM }
+            annotation { "Name" : "Neutral plane", "Default" : DraftNeutralPlane.START }
             definition.draftNeutralPlane is DraftNeutralPlane;
 
             annotation { "Name" : "Draft angle", "Default" : 1 * degree }
@@ -241,11 +241,11 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
                     const basePullVec = definition.flipZ == true ? -Z_DIRECTION : Z_DIRECTION;
                     const pullVec = definition.reverseDraft == true ? -basePullVec : basePullVec;
 
-                    if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
+                    if (definition.draftNeutralPlane == DraftNeutralPlane.END)
                     {
                         neutralPlaneQuery = definition.flipZ == true ? bottomFace : topFace;
                     }
-                    else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
+                    else if (definition.draftNeutralPlane == DraftNeutralPlane.START)
                     {
                         neutralPlaneQuery = definition.flipZ == true ? topFace : bottomFace;
                     }
@@ -414,11 +414,11 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             const neutralTopZ = definition.flipZ == true ? localBottomZ : localTopZ;
             const neutralBottomZ = definition.flipZ == true ? localTopZ : localBottomZ;
             var localNeutralZ;
-            if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
+            if (definition.draftNeutralPlane == DraftNeutralPlane.END)
             {
                 localNeutralZ = neutralTopZ;
             }
-            else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
+            else if (definition.draftNeutralPlane == DraftNeutralPlane.START)
             {
                 localNeutralZ = neutralBottomZ;
             }
