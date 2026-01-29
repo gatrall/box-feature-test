@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Align draft manip axis to local Z'
+// git commit 'Rotate draft manip around local Y'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -415,14 +415,13 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
             const localPlaneY = origin[1];
             const localSideX = localCorner2[0];
-            const sideSignX = localCorner2[0] >= localCorner1[0] ? 1 : -1;
+            const sideSignZ = signedSize[2] >= 0 * millimeter ? 1 : -1;
             const draftRadius = max(clampedSizeX, clampedSizeY) / 2;
             const localAxisOrigin = vector(localSideX, localPlaneY, localNeutralZ);
-            const localRotationOrigin = vector(localSideX + sideSignX * draftRadius, localPlaneY, localNeutralZ);
+            const localRotationOrigin = vector(localSideX, localPlaneY, localNeutralZ + sideSignZ * draftRadius);
             const worldAxisOrigin = toWorld(baseCsys, localAxisOrigin);
             const worldRotationOrigin = toWorld(baseCsys, localRotationOrigin);
-            const zSign = signedSize[2] >= 0 * millimeter ? 1 : -1;
-            const axisDirection = baseCsys.zAxis * zSign;
+            const axisDirection = yAxis;
             const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
             const maxDraftAngle = DRAFT_ANGLE_MAX;
 
