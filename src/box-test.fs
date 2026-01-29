@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Rename draft neutral plane labels'
+// git commit 'Default draft neutral plane to Start'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -86,7 +86,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         definition.hasDraft is boolean;
         if (definition.hasDraft)
         {
-            annotation { "Name" : "Neutral plane", "Default" : DraftNeutralPlane.MIDDLE }
+            annotation { "Name" : "Neutral plane", "Default" : DraftNeutralPlane.BOTTOM }
             definition.draftNeutralPlane is DraftNeutralPlane;
 
             annotation { "Name" : "Draft angle", "Default" : 1 * degree }
