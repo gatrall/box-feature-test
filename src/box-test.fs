@@ -1,6 +1,7 @@
 FeatureScript 2856;
 
-// git commit 'Align draft manipulator to neutral plane and X side'
+// git commit 'Fix draft manip angle bounds'
+
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -28,6 +29,7 @@ export enum DraftNeutralPlane
 }
 
 const MIN_SIZE = 0.01 * millimeter;
+const DRAFT_ANGLE_MAX = 89.999 * degree;
 
 annotation { "Feature Type Name" : "Box Test", "Manipulator Change Function" : "boxTestManipulators" }
 export const boxTest = defineFeature(function(context is Context, id is Id, definition is map)
@@ -416,7 +418,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             const worldNeutralCenter = toWorld(baseCsys, localNeutralCenter);
             const worldRotationOrigin = toWorld(baseCsys, localRotationOrigin);
             const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
-            const maxDraftAngle = ANGLE_STRICT_90_BOUNDS.max;
+            const maxDraftAngle = DRAFT_ANGLE_MAX;
 
             manipulators["draftAngle"] = angularManipulator({
                 "axisOrigin" : worldNeutralCenter,
@@ -491,7 +493,7 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         }
         const newAngle = manip.angle;
         definition.reverseDraft = newAngle < 0 * degree;
-        definition.draftAngle = min(abs(newAngle), ANGLE_STRICT_90_BOUNDS.max);
+        definition.draftAngle = min(abs(newAngle), DRAFT_ANGLE_MAX);
         return definition;
     }
 
