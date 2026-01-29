@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// Pasted to Onshape from git commit: (fill in after paste)
+// git commit 'Default merge with all for non-new ops'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -24,6 +24,13 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
         annotation { "Name" : "Placement", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : PlacementMode.CENTER }
         definition.placement is PlacementMode;
+
+        annotation {
+            "Name" : "Location",
+            "Filter" : EntityType.VERTEX || BodyType.MATE_CONNECTOR,
+            "MaxNumberOfPicks" : 1
+        }
+        definition.location is Query;
 
         annotation { "Name" : "X Size" }
         isLength(definition.sizeX, NONNEGATIVE_LENGTH_BOUNDS);
@@ -49,12 +56,6 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             definition.flipZ is boolean;
         }
 
-        annotation {
-            "Name" : "Location",
-            "Filter" : EntityType.VERTEX || BodyType.MATE_CONNECTOR,
-            "MaxNumberOfPicks" : 1
-        }
-        definition.location is Query;
 
         annotation { "Name" : "X Offset" }
         isLength(definition.originX, ZERO_DEFAULT_LENGTH_BOUNDS);
@@ -65,7 +66,16 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         annotation { "Name" : "Z Offset" }
         isLength(definition.originZ, ZERO_DEFAULT_LENGTH_BOUNDS);
 
-        booleanStepScopePredicate(definition);
+        if (definition.operationType != NewBodyOperationType.NEW)
+        {
+            annotation { "Name" : "Merge with all", "Default" : true }
+            definition.defaultScope is boolean;
+            if (definition.defaultScope != true)
+            {
+                annotation { "Name" : "Merge scope", "Filter" : EntityType.BODY && BodyType.SOLID && ModifiableEntityOnly.YES }
+                definition.booleanScope is Query;
+            }
+        }
 
     }
     {
@@ -241,7 +251,7 @@ function normalizeManipulatorDefinition(definition is map) returns map
     }
     if (definition.defaultScope == undefined)
     {
-        definition.defaultScope = true;
+        definition.defaultScope = definition.operationType != NewBodyOperationType.NEW;
     }
     if (definition.booleanScope == undefined)
     {
