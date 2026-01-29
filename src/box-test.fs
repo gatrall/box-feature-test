@@ -15,8 +15,8 @@ export enum PlacementMode
 
 const MIN_SIZE = 0.01 * millimeter;
 
-annotation { "Feature Type Name" : "My First Feature", "Manipulator Change Function" : "myFirstFeatureManipulators" }
-export const myFirstFeature = defineFeature(function(context is Context, id is Id, definition is map)
+annotation { "Feature Type Name" : "Box Test", "Manipulator Change Function" : "myFirstFeatureManipulators" }
+export const boxTest = defineFeature(function(context is Context, id is Id, definition is map)
     precondition
     {
         annotation { "Name" : "Placement", "UIHint" : UIHint.HORIZONTAL_ENUM, "Default" : PlacementMode.CENTER }
