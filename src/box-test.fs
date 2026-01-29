@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Fix draft top/bottom for flipZ'
+// git commit 'Keep draft direction consistent with flipZ'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -227,7 +227,8 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
                 {
                     const draftFaces = qUnion(sideFaceQueries);
                     var neutralPlaneQuery;
-                    const pullVec = definition.reverseDraft == true ? -Z_DIRECTION : Z_DIRECTION;
+                    const basePullVec = definition.flipZ == true ? -Z_DIRECTION : Z_DIRECTION;
+                    const pullVec = definition.reverseDraft == true ? -basePullVec : basePullVec;
 
                     if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
                     {
