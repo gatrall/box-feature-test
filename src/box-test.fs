@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Flip draft manip with Z'
+// git commit 'Invert draft manip axis'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -421,7 +421,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             const localRotationOrigin = vector(localSideX, localPlaneY, localNeutralZ + sideSignZ * draftRadius);
             const worldAxisOrigin = toWorld(baseCsys, localAxisOrigin);
             const worldRotationOrigin = toWorld(baseCsys, localRotationOrigin);
-            const axisDirection = yAxis;
+            const axisDirection = -yAxis;
             const signedDraftAngle = definition.reverseDraft == true ? -definition.draftAngle : definition.draftAngle;
             const maxDraftAngle = DRAFT_ANGLE_MAX;
 
