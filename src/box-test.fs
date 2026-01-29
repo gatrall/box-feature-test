@@ -56,14 +56,14 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         }
         definition.location is Query;
 
-        annotation { "Name" : "X Offset", "Default" : 0 * millimeter }
-        isLength(definition.originX, LENGTH_BOUNDS);
+        annotation { "Name" : "X Offset" }
+        isLength(definition.originX, ZERO_DEFAULT_LENGTH_BOUNDS);
 
-        annotation { "Name" : "Y Offset", "Default" : 0 * millimeter }
-        isLength(definition.originY, LENGTH_BOUNDS);
+        annotation { "Name" : "Y Offset" }
+        isLength(definition.originY, ZERO_DEFAULT_LENGTH_BOUNDS);
 
-        annotation { "Name" : "Z Offset", "Default" : 0 * millimeter }
-        isLength(definition.originZ, LENGTH_BOUNDS);
+        annotation { "Name" : "Z Offset" }
+        isLength(definition.originZ, ZERO_DEFAULT_LENGTH_BOUNDS);
 
         booleanStepScopePredicate(definition);
 
@@ -89,6 +89,15 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
                 baseCsys = coordSystem(point, X_DIRECTION, Z_DIRECTION);
             }
         }
+
+        const remainingTransform = getRemainderPatternTransform(context, {
+            "references" : definition.location
+        });
+
+        const transformedOrigin = remainingTransform * baseCsys.origin;
+        const transformedXAxis = normalize((remainingTransform * (baseCsys.origin + baseCsys.xAxis * meter)) - transformedOrigin);
+        const transformedZAxis = normalize((remainingTransform * (baseCsys.origin + baseCsys.zAxis * meter)) - transformedOrigin);
+        baseCsys = coordSystem(transformedOrigin, transformedXAxis, transformedZAxis);
 
         const origin = vector(definition.originX, definition.originY, definition.originZ);
         const clampedSizeX = max(definition.sizeX, MIN_SIZE);
