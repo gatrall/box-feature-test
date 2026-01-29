@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Improve Face Center Z manipulator'
+// git commit 'Match Hole location filter to sketch points and mate connectors'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -29,7 +29,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
         annotation {
             "Name" : "Location",
-            "Filter" : EntityType.VERTEX || BodyType.MATE_CONNECTOR,
+            "Filter" : (EntityType.VERTEX && SketchObject.YES) || BodyType.MATE_CONNECTOR,
             "MaxNumberOfPicks" : 1
         }
         definition.location is Query;
