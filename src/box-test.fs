@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Match Hole location filter to sketch points and mate connectors'
+// git commit 'Add draft option with neutral plane and angle'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -14,6 +14,17 @@ export enum PlacementMode
     FACE_CENTER,
     annotation { "Name" : "Corner" }
     CORNER
+}
+
+
+export enum DraftNeutralPlane
+{
+    annotation { "Name" : "Top" }
+    TOP,
+    annotation { "Name" : "Middle" }
+    MIDDLE,
+    annotation { "Name" : "Bottom" }
+    BOTTOM
 }
 
 const MIN_SIZE = 0.01 * millimeter;
@@ -67,6 +78,20 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
         annotation { "Name" : "Z Offset" }
         isLength(definition.originZ, ZERO_DEFAULT_LENGTH_BOUNDS);
+
+        annotation { "Name" : "Draft", "Default" : false }
+        definition.hasDraft is boolean;
+        if (definition.hasDraft)
+        {
+            annotation { "Name" : "Neutral plane", "Default" : DraftNeutralPlane.MIDDLE }
+            definition.draftNeutralPlane is DraftNeutralPlane;
+
+            annotation { "Name" : "Draft angle", "Default" : 1 * degree }
+            isAngle(definition.draftAngle, ANGLE_STRICT_90_BOUNDS);
+
+            annotation { "Name" : "", "UIHint" : UIHint.OPPOSITE_DIRECTION, "Default" : false }
+            definition.reverseDraft is boolean;
+        }
 
         if (definition.operationType != NewBodyOperationType.NEW)
         {
@@ -148,12 +173,96 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             localCorner2 = origin + signedSize;
         }
 
+
+
+
+        const localCenter = (localCorner1 + localCorner2) / 2;
+
         var reconstructOp = function()
         {
             fCuboid(context, boxId, {
                 "corner1" : localCorner1,
                 "corner2" : localCorner2
             });
+
+            if (definition.hasDraft == true)
+            {
+                const faceEntities = evaluateQuery(context, qCreatedBy(boxId, EntityType.FACE));
+                var sideFaceQueries = [];
+                var topFace;
+                var bottomFace;
+                var topZ = -1e9 * meter;
+                var bottomZ = 1e9 * meter;
+                for (var face in faceEntities)
+                {
+                    const planeDef = evFaceTangentPlane(context, {
+                        "face" : face,
+                        "parameter" : vector(0.5, 0.5)
+                    });
+                    const normal = planeDef.normal;
+                    const dotZ = dot(normal, Z_DIRECTION);
+                    if (abs(dotZ) > 0.999)
+                    {
+                        const zPos = dot(planeDef.origin, Z_DIRECTION);
+                        if (zPos > topZ)
+                        {
+                            topZ = zPos;
+                            topFace = face;
+                        }
+                        if (zPos < bottomZ)
+                        {
+                            bottomZ = zPos;
+                            bottomFace = face;
+                        }
+                    }
+                    else
+                    {
+                        sideFaceQueries = append(sideFaceQueries, qEntity(face));
+                    }
+                }
+
+                if (size(sideFaceQueries) > 0 && topFace != undefined && bottomFace != undefined)
+                {
+                    const draftFaces = qUnion(sideFaceQueries);
+                    var neutralPlaneQuery;
+                    const pullVec = definition.reverseDraft == true ? -Z_DIRECTION : Z_DIRECTION;
+
+                    if (definition.draftNeutralPlane == DraftNeutralPlane.TOP)
+                    {
+                        neutralPlaneQuery = qEntity(topFace);
+                    }
+                    else if (definition.draftNeutralPlane == DraftNeutralPlane.BOTTOM)
+                    {
+                        neutralPlaneQuery = qEntity(bottomFace);
+                    }
+                    else
+                    {
+                        const planeSize = max(clampedSizeX, clampedSizeY) * 2;
+                        const planeId = id + "draftPlane";
+                        opPlane(context, planeId, {
+                            "plane" : plane(localCenter, Z_DIRECTION),
+                            "width" : planeSize,
+                            "height" : planeSize
+                        });
+                        neutralPlaneQuery = qCreatedBy(planeId, EntityType.FACE);
+                    }
+
+                    opDraft(context, id + "draft", {
+                        "draftType" : DraftType.NEUTRAL_PLANE,
+                        "neutralPlane" : neutralPlaneQuery,
+                        "draftFaces" : draftFaces,
+                        "pullVec" : pullVec,
+                        "angle" : definition.draftAngle
+                    });
+
+                    if (definition.draftNeutralPlane == DraftNeutralPlane.MIDDLE)
+                    {
+                        opDeleteBodies(context, id + "draftPlaneDelete", {
+                            "entities" : qCreatedBy(id + "draftPlane", EntityType.BODY)
+                        });
+                    }
+                }
+            }
 
             opTransform(context, id + "orientBox", {
                 "bodies" : qCreatedBy(boxId, EntityType.BODY),
@@ -162,7 +271,6 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         };
         reconstructOp();
 
-        const localCenter = (localCorner1 + localCorner2) / 2;
         const worldCenter = toWorld(baseCsys, localCenter);
         const yAxis = normalize(cross(baseCsys.zAxis, baseCsys.xAxis));
 
@@ -304,6 +412,22 @@ function normalizeManipulatorDefinition(definition is map) returns map
     if (definition.booleanScope == undefined)
     {
         definition.booleanScope = qNothing();
+    }
+    if (definition.hasDraft == undefined)
+    {
+        definition.hasDraft = false;
+    }
+    if (definition.draftNeutralPlane == undefined)
+    {
+        definition.draftNeutralPlane = DraftNeutralPlane.MIDDLE;
+    }
+    if (definition.draftAngle == undefined)
+    {
+        definition.draftAngle = 1 * degree;
+    }
+    if (definition.reverseDraft == undefined)
+    {
+        definition.reverseDraft = false;
     }
     if (definition.placement == undefined)
     {
