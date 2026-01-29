@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Rotate draft manip around local Y'
+// git commit 'Flip draft manip with Z'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
@@ -415,7 +415,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
             const localPlaneY = origin[1];
             const localSideX = localCorner2[0];
-            const sideSignZ = signedSize[2] >= 0 * millimeter ? 1 : -1;
+            const sideSignZ = definition.flipZ == true ? -1 : 1;
             const draftRadius = max(clampedSizeX, clampedSizeY) / 2;
             const localAxisOrigin = vector(localSideX, localPlaneY, localNeutralZ);
             const localRotationOrigin = vector(localSideX, localPlaneY, localNeutralZ + sideSignZ * draftRadius);
