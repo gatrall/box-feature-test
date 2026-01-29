@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Add flip Z for Face Center placement'
+// git commit 'Improve Face Center Z manipulator'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -170,7 +170,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         var yManip;
         var zManip;
         var diagManip;
-        if (definition.placement != PlacementMode.CORNER)
+        if (definition.placement == PlacementMode.CENTER)
         {
             xManip = linearManipulator({
                 "base" : worldCenter,
@@ -191,6 +191,41 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
                 "direction" : baseCsys.zAxis,
                 "offset" : signedSize[2] / 2,
                 "minValue" : MIN_SIZE / 2,
+                "primaryParameterId" : "sizeZ"
+            });
+            diagManip = linearManipulator({
+                "base" : worldCenter,
+                "direction" : normalize(
+                    baseCsys.xAxis * signedSize[0] +
+                    yAxis * signedSize[1] +
+                    baseCsys.zAxis * signedSize[2]
+                ),
+                "offset" : norm(signedSize) / 2,
+                "minValue" : MIN_SIZE / 2,
+                "primaryParameterId" : "sizeX"
+            });
+        }
+        else if (definition.placement == PlacementMode.FACE_CENTER)
+        {
+            const worldOrigin = toWorld(baseCsys, origin);
+            xManip = linearManipulator({
+                "base" : worldCenter,
+                "direction" : baseCsys.xAxis,
+                "offset" : signedSize[0] / 2,
+                "minValue" : MIN_SIZE / 2,
+                "primaryParameterId" : "sizeX"
+            });
+            yManip = linearManipulator({
+                "base" : worldCenter,
+                "direction" : yAxis,
+                "offset" : signedSize[1] / 2,
+                "minValue" : MIN_SIZE / 2,
+                "primaryParameterId" : "sizeY"
+            });
+            zManip = linearManipulator({
+                "base" : worldOrigin,
+                "direction" : baseCsys.zAxis,
+                "offset" : signedSize[2],
                 "primaryParameterId" : "sizeZ"
             });
             diagManip = linearManipulator({
@@ -372,11 +407,15 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         {
             return definition;
         }
-        if (definition.placement != PlacementMode.CORNER && abs(manip.offset) < MIN_SIZE / 2)
+        if (definition.placement == PlacementMode.CENTER && abs(manip.offset) < MIN_SIZE / 2)
         {
             return definition;
         }
-        if (definition.placement != PlacementMode.CORNER)
+        if (definition.placement == PlacementMode.FACE_CENTER && abs(manip.offset) < MIN_SIZE)
+        {
+            return definition;
+        }
+        if (definition.placement == PlacementMode.CENTER)
         {
             definition.sizeZ = max(abs(manip.offset) * 2, MIN_SIZE);
         }
