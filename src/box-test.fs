@@ -1,10 +1,11 @@
 FeatureScript 2856;
 
-// git commit 'Flip draft manip axis with Z size'
+// git commit 'Use sketch plane normal for sketch vertices'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
+import(path : "onshape/std/sketch.fs", version : "2856.0");
 export import(path : "onshape/std/tool.fs", version : "2856.0");
 
 export enum PlacementMode
@@ -125,7 +126,17 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
                 const point = evVertexPoint(context, {
                     "vertex" : definition.location
                 });
-                baseCsys = coordSystem(point, X_DIRECTION, Z_DIRECTION);
+                const sketchPlane = try silent(evOwnerSketchPlane(context, {
+                    "entity" : definition.location
+                }));
+                if (sketchPlane != undefined)
+                {
+                    baseCsys = coordSystem(point, sketchPlane.x, sketchPlane.normal);
+                }
+                else
+                {
+                    baseCsys = coordSystem(point, X_DIRECTION, Z_DIRECTION);
+                }
             }
         }
 
