@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Default merge with all for non-new ops'
+// git commit 'Add flip Z for Face Center placement'
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
 import(path : "onshape/std/geometry.fs", version : "2856.0");
@@ -10,6 +10,8 @@ export enum PlacementMode
 {
     annotation { "Name" : "Center" }
     CENTER,
+    annotation { "Name" : "Face Center" }
+    FACE_CENTER,
     annotation { "Name" : "Corner" }
     CORNER
 }
@@ -50,7 +52,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
 
         annotation { "Name" : "Z Size" }
         isLength(definition.sizeZ, NONNEGATIVE_LENGTH_BOUNDS);
-        if (definition.placement == PlacementMode.CORNER)
+        if (definition.placement == PlacementMode.CORNER || definition.placement == PlacementMode.FACE_CENTER)
         {
             annotation { "Name" : "", "UIHint" : UIHint.OPPOSITE_DIRECTION, "Default" : false }
             definition.flipZ is boolean;
@@ -125,6 +127,17 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
             localCorner1 = origin - half;
             localCorner2 = origin + half;
         }
+        else if (definition.placement == PlacementMode.FACE_CENTER)
+        {
+            const halfXY = vector(clampedSizeX / 2, clampedSizeY / 2, 0 * millimeter);
+            const signZ = definition.flipZ ? -1 : 1;
+            const signedSizeZ = signZ * clampedSizeZ;
+            signedSize = vector(clampedSizeX, clampedSizeY, signedSizeZ);
+            const zMin = min(0 * millimeter, signedSizeZ);
+            const zMax = max(0 * millimeter, signedSizeZ);
+            localCorner1 = origin - halfXY + vector(0 * millimeter, 0 * millimeter, zMin);
+            localCorner2 = origin + halfXY + vector(0 * millimeter, 0 * millimeter, zMax);
+        }
         else
         {
             const signX = definition.flipX ? -1 : 1;
@@ -157,7 +170,7 @@ export const boxTest = defineFeature(function(context is Context, id is Id, defi
         var yManip;
         var zManip;
         var diagManip;
-        if (definition.placement == PlacementMode.CENTER)
+        if (definition.placement != PlacementMode.CORNER)
         {
             xManip = linearManipulator({
                 "base" : worldCenter,
@@ -315,11 +328,11 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER && abs(manip.offset) < MIN_SIZE / 2)
+        if (definition.placement != PlacementMode.CORNER && abs(manip.offset) < MIN_SIZE / 2)
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER)
+        if (definition.placement != PlacementMode.CORNER)
         {
             definition.sizeX = max(abs(manip.offset) * 2, MIN_SIZE);
         }
@@ -337,11 +350,11 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER && abs(manip.offset) < MIN_SIZE / 2)
+        if (definition.placement != PlacementMode.CORNER && abs(manip.offset) < MIN_SIZE / 2)
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER)
+        if (definition.placement != PlacementMode.CORNER)
         {
             definition.sizeY = max(abs(manip.offset) * 2, MIN_SIZE);
         }
@@ -359,11 +372,11 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER && abs(manip.offset) < MIN_SIZE / 2)
+        if (definition.placement != PlacementMode.CORNER && abs(manip.offset) < MIN_SIZE / 2)
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER)
+        if (definition.placement != PlacementMode.CORNER)
         {
             definition.sizeZ = max(abs(manip.offset) * 2, MIN_SIZE);
         }
@@ -381,7 +394,7 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         {
             return definition;
         }
-        if (definition.placement == PlacementMode.CENTER && abs(manip.offset) < MIN_SIZE / 2)
+        if (definition.placement != PlacementMode.CORNER && abs(manip.offset) < MIN_SIZE / 2)
         {
             return definition;
         }
@@ -395,7 +408,7 @@ export function boxTestManipulators(context is Context, definition is map, newMa
         const clampedSizeY = max(definition.sizeY, MIN_SIZE);
         const clampedSizeZ = max(definition.sizeZ, MIN_SIZE);
         const signedSize = vector(signX * clampedSizeX, signY * clampedSizeY, signZ * clampedSizeZ);
-        const oldOffset = definition.placement == PlacementMode.CENTER ? norm(signedSize) / 2 : norm(signedSize);
+        const oldOffset = definition.placement != PlacementMode.CORNER ? norm(signedSize) / 2 : norm(signedSize);
         if (oldOffset <= 0 * millimeter)
         {
             return definition;
