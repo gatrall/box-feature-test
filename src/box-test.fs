@@ -1,6 +1,6 @@
 FeatureScript 2856;
 
-// git commit 'Keep draft direction consistent with flipZ'
+// git commit 'Flip draft manip axis with Z size'
 
 
 import(path : "onshape/std/feature.fs", version : "2856.0");
